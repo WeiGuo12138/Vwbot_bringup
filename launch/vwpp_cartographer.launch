@@ -1,0 +1,28 @@
+<launch>
+
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="50.0" />
+    <param name="tf_prefix" value=""/>
+  </node>
+
+  <node name="cartographer_node"
+            pkg="cartographer_ros"
+            type="cartographer_node"
+            args="-configuration_directory $(find cartographer_ros)/configuration_files -configuration_basename cartographer_2.lua"
+            output="screen">
+      </node>
+
+  <node name="cartographer_occupancy_grid_node"
+            pkg="cartographer_ros"
+            type="cartographer_occupancy_grid_node" />
+
+  <!--include file="$(find turtlebot3_bringup)/launch/includes/description.launch.xml">
+    <arg name="model" value="burger" />
+  </include-->
+ 
+  <param name ="robot_description" textfile = "$(find vwbot_description)/urdf/vwbot_burger.urdf.xacro"/>
+
+  <include file="$(find sanchi_driver)/launch/imu_100D2.launch"/>
+  <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
+  <node pkg="turtlebot3_bringup" type="turtlebot3_diagnostics" name="turtlebot3_diagnostics" output="screen"/>
+</launch>

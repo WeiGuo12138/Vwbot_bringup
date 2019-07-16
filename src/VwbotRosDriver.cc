@@ -33,7 +33,7 @@ VwbotRosDriver::VwbotRosDriver():
     {
         ROS_WARN("%s, use the default port %s", this->node_name.c_str(), this->port.c_str());
     }
-    
+
     if (nh.hasParam("baud"))
     {
         nh.getParam("baud", this->baud);
@@ -70,7 +70,9 @@ VwbotRosDriver::VwbotRosDriver():
     }
 
     // TODO: Consider add to the initial list.
-    std::string cmd_vel_sub_topic_name = "/cmd_vel_stamped";
+    std::string cmd_vel_sub_topic_name = "/cmd_vel_unstamped";
+    std::string imu_sub_topic_name = "/imu";
+
     if (nh.hasParam("cmd_vel_topic"))
     {
         nh.getParam("cmd_vel_topic", cmd_vel_sub_topic_name);
@@ -81,7 +83,19 @@ VwbotRosDriver::VwbotRosDriver():
         ROS_WARN("%s, use the default cmd_vel topic name %s", this->node_name.c_str(), cmd_vel_sub_topic_name.c_str());
     }
 
-    this->cmd_vel_sub = nh.subscribe<geometry_msgs::TwistStamped>(cmd_vel_sub_topic_name, 1, &VwbotRosDriver::cmd_vel_stamped_cb, this);
+    this->cmd_vel_sub = nh.subscribe<geometry_msgs::Twist>(cmd_vel_sub_topic_name, 1, &VwbotRosDriver::cmd_vel_stamped_cb, this);
+
+    if (nh.hasParam("imu_topic"))
+    {
+    	nh.getParam("imu_topic",imu_sub_topic_name);
+	ROS_INFO("%s, use imu topic name %s", this->node_name.c_str(), imu_sub_topic_name.c_str());
+    }
+    else
+    {
+	ROS_WARN("%s, use the default imu topic name %s", this->node_name.c_str(), imu_sub_topic_name.c_str());
+    }
+
+    this->imu_sub = nh.subscribe<sensor_msgs::Imu>(imu_sub_topic_name, 1, &VwbotRosDriver::imu_cb, this);
 
 }
 
@@ -92,19 +106,31 @@ VwbotRosDriver::~VwbotRosDriver()
     delete this->vwbot_serial_hardware;
 }
 
+void VwbotRosDriver::imu_cb(const sensor_msgs::Imu::ConstPtr& msg)
 
-
-void VwbotRosDriver::cmd_vel_stamped_cb(const geometry_msgs::TwistStamped::ConstPtr& msg)
+{
+    VwbotSerialHardware::Orientation vwbot_imu_orientation{};
+    vwbot_imu_orientation.x = msg->orientation.x;
+    vwbot_imu_orientation.y = msg->orientation.y;
+    vwbot_imu_orientation.z = msg->orientation.z;
+    vwbot_imu_orientation.w = msg->orientation.w;
+    if (this->vwbot_serial_hardware->sendMessage_imu(vwbot_imu_orientation) != 1)
+    {
+    	ROS_ERROR("%s, Send Imu_Message failed ", this->node_name.c_str());
+    }
+}
+void VwbotRosDriver::cmd_vel_stamped_cb(const geometry_msgs::Twist::ConstPtr& msg)
 {
 
-    VwbotSerialHardware::Velocity2D vwbot_cmd_vel;
-    vwbot_cmd_vel.x = msg->twist.linear.x;
-    vwbot_cmd_vel.y = msg->twist.linear.y;
-    vwbot_cmd_vel.yaw = msg->twist.angular.z;
+    VwbotSerialHardware::Velocity2D vwbot_cmd_vel{};
+    vwbot_cmd_vel.x = msg->linear.x;
+    vwbot_cmd_vel.y = msg->linear.y;
+    vwbot_cmd_vel.yaw = msg->angular.z;
 
-    if (this->vwbot_serial_hardware->sendMessage(vwbot_cmd_vel) != 1)
+    if (this->vwbot_serial_hardware->sendMessage_cmd_vel(vwbot_cmd_vel) != 1)
     {
-        ROS_ERROR("%s, Send Message failed!", this->node_name.c_str());
+        ROS_ERROR("%s, Send Cmd_vel_Message failed!", this->node_name.c_str());
     }
 
 }
+

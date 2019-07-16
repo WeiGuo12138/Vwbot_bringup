@@ -4,12 +4,12 @@
         name="vwbot_bringup_node"
         type="vwbot_bringup_node"
         output="screen">
-    <param name="port" value="/dev/ttyUSB0"/>
+    <param name="port" value="/dev/run"/>
     <param name="model" value="VWBOT_G1"/>
     <param name="baud" value="115200"/>
     <param name="frame_id" value="base_link"/>
     <param name="msg_length" value="6"/>
-    <param name="cmd_vel_topic" value="/cmd_vel_stamped"/>
+    <param name="cmd_vel_topic" value="/cmd_vel_unstamped"/>
     <param name="communication_hz" value="100"/>
   </node>
 

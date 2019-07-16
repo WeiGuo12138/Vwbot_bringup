@@ -5,6 +5,7 @@
 #include <cstring>
 #include <queue>
 #include <vwbot_bringup/BoostSerialCommunicator.h>
+#include "utils.h"
 
 namespace vwpp
 {
@@ -26,7 +27,20 @@ namespace vwpp
             float yaw;
         };
 
-        int sendMessage(Velocity2D vel_);
+	// New 7.12
+
+	struct Orientation
+	{
+	public:
+	    float x;
+     	    float y;
+            float z;
+            float w;	    
+	};
+
+	int sendMessage_cmd_vel(Velocity2D vel_);
+	int sendMessage_imu(Orientation imu_);
+    // New 7.12
 
     private:
 
@@ -40,6 +54,8 @@ namespace vwpp
         boost_serial_base::stop_bits::type st_type;
 
         BoostSerialCommunicator* boost_serial_communicator;
+
+        lock_t mutex{};
 
         const uint8_t* msg_stop;
         const uint8_t* msg_start;
