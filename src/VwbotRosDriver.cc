@@ -72,6 +72,7 @@ VwbotRosDriver::VwbotRosDriver():
     // TODO: Consider add to the initial list.
     std::string cmd_vel_sub_topic_name = "/cmd_vel_unstamped";
     std::string imu_sub_topic_name = "/imu";
+    std::string MG995_topic_name="/send_to_hand";
 
     if (nh.hasParam("cmd_vel_topic"))
     {
@@ -97,6 +98,17 @@ VwbotRosDriver::VwbotRosDriver():
 
     this->imu_sub = nh.subscribe<sensor_msgs::Imu>(imu_sub_topic_name, 1, &VwbotRosDriver::imu_cb, this);
 
+    if (nh.hasParam("MG995_topic"))
+    {
+        nh.getParam("MG995_topic",MG995_topic_name);
+        ROS_INFO("%s, use MG995 topic name %s", this->node_name.c_str(), MG995_topic_name.c_str());
+    }
+    else
+    {
+        ROS_WARN("%s, use the MG995 topic name %s", this->node_name.c_str(), MG995_topic_name.c_str());
+    }
+
+    this->MG995_sub = nh.subscribe<std_msgs::Bool>(MG995_topic_name,1,&VwbotRosDriver::MG995_cb,this);
 }
 
 
@@ -133,4 +145,12 @@ void VwbotRosDriver::cmd_vel_stamped_cb(const geometry_msgs::Twist::ConstPtr& ms
     }
 
 }
-
+void VwbotRosDriver::MG995_cb(const std_msgs::Bool::ConstPtr &msg)
+{
+    bool key;
+    key = msg->data;
+    if(this->vwbot_serial_hardware->sendMessage_MG995(key)!=1)
+    {
+        ROS_ERROR("%s, Send MG995_key_message failed!",this->node_name.c_str());
+    }
+}

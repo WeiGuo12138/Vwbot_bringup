@@ -171,4 +171,61 @@ int VwbotSerialHardware::sendMessage_imu(VwbotSerialHardware::Orientation imu_)
     
 }
 
+int VwbotSerialHardware::sendMessage_MG995(bool key_)
+{
+    std::vector<uint8_t> vec_msg;
+    // Header
+    vec_msg.push_back(0xC5);
+    vec_msg.push_back(0x5C);
+    // Host ID
+    vec_msg.push_back(0x02);
+    // data length
+    vec_msg.push_back(0x01);
+
+    if(key_== 1)
+    {
+        vec_msg.push_back(0x02);
+    }
+    if(key_== 0)
+    {
+        vec_msg.push_back(0x01);
+    }
+
+    // New imu 7.12
+//    int16_t imu_yaw = round_float(atan(2*(imu_.z*imu_.w+imu_.y*imu_.x)/(1-2*(imu_.z*imu_.z+imu_.y*imu_.y)))/3.1415926*180);
+//    printf("yaw data: %d\n", imu_yaw);
+//    auto imu_yaw_hbits = uint8_t(imu_yaw >> 8);
+//    auto imu_yaw_lbits = uint8_t(imu_yaw & (0x00FF));
+//    vec_msg.push_back(imu_yaw_hbits);
+//    vec_msg.push_back(imu_yaw_lbits);
+
+    // checksum, add all the data before the checksum byte, include the headers.
+    int data_sum = 0;
+    for (auto item : vec_msg)
+    {
+        data_sum += item;
+    }
+    uint8_t checksum = (data_sum) % 256;
+
+    vec_msg.push_back(checksum);
+
+    vec_msg.push_back(0xCC);
+
+    // Lock
+    //
+    lock(&mutex);
+
+    if (this->boost_serial_communicator->sendMessage(vec_msg) == 1)
+    {
+        unlock(&mutex);
+        return 1;
+    }
+    else
+    {
+        std::cerr << "\033[31m" << "Send message failed"
+                  << "\033[0m"  << std::endl;
+        unlock(&mutex);
+        return (-1);
+    }
+}
 

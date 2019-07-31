@@ -40,6 +40,7 @@ namespace vwpp
 
 	int sendMessage_cmd_vel(Velocity2D vel_);
 	int sendMessage_imu(Orientation imu_);
+	int sendMessage_MG995(bool key_);
     // New 7.12
 
     private:

@@ -8,7 +8,7 @@
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Imu.h>
 #include <tf/tf.h>
-
+#include <std_msgs/Bool.h>
 #include <vwbot_bringup/VwbotSerialHardware.h>
 
 namespace vwpp
@@ -24,6 +24,7 @@ namespace vwpp
 
         void imu_cb(const sensor_msgs::Imu::ConstPtr &msg);
 
+        void MG995_cb(const std_msgs::Bool::ConstPtr &msg);
 
     private:
 
@@ -43,6 +44,7 @@ namespace vwpp
         ros::NodeHandle nh;
         ros::Subscriber cmd_vel_sub;
         ros::Subscriber imu_sub;
+        ros::Subscriber MG995_sub;
     };
 
 } // namespace vwpp
